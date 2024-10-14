@@ -6,6 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import pe.edu.cibertec.patitas_fronted_wc.dto.LoginRequestDTO;
 import pe.edu.cibertec.patitas_fronted_wc.dto.LoginResponseDTO;
 import pe.edu.cibertec.patitas_fronted_wc.dto.LogoutRequestDTO;
+import pe.edu.cibertec.patitas_fronted_wc.dto.LogoutResponseDTO;
 import reactor.core.publisher.Mono;
 
 
@@ -55,6 +56,25 @@ import reactor.core.publisher.Mono;
 
             }
 
+        }
+        @PostMapping("/logout-async")
+        public Mono<LogoutResponseDTO> cerrarSesion(@RequestBody LogoutRequestDTO logoutRequestDTO) {
+            try {
+                return webClientAutenticacion.post()
+                        .uri("/logout")
+                        .body(Mono.just(logoutRequestDTO), LoginRequestDTO.class)
+                        .retrieve()
+                        .bodyToMono(LoginResponseDTO.class)
+                        .flatMap(response -> {
+                            if (response.codigo().equals("00")) {
+                                return Mono.just(new LogoutResponseDTO("00", "Cierre de sesión exitoso"));
+                            } else {
+                                return Mono.just(new LogoutResponseDTO("02", "Error al cerrar sesión"));
+                            }
+                        });
+            } catch (Exception e) {
+                return Mono.just(new LogoutResponseDTO("99", "Error en el proceso de cierre de sesión"));
+            }
         }
 
 
